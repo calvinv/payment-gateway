@@ -1,6 +1,6 @@
 using System;
 
-namespace Bank.Simulator.Models
+namespace Payment.Gateway.Core.Models.FoobarBank
 {
     public class PaymentResponse
     {
