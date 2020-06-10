@@ -4,7 +4,9 @@
     {
         Unknown = 0,
         Success = 1,
-        Declined = 2,
-        PartnerError = 3
+        Pending = 2,
+        Declined = 3,
+        Error = 4,
+        PartnerError = 5
     }
 }

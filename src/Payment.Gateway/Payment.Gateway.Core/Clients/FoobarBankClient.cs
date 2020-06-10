@@ -24,6 +24,8 @@ namespace Payment.Gateway.Core.Clients
         private readonly string _paymentRequestAddress;
         private readonly ILogger _logger;
         private const string ApplicationJson = "application/json";
+        private const string SuccessfulPaymentStatus = "success";
+        private const string DeclinedPaymentStatus = "declined";
 
         public FoobarBankClient(IHttpClientFactory httpClientFactory, ILogger logger, IOptions<FoobarBankOptions> options)
         {
@@ -109,36 +111,69 @@ namespace Payment.Gateway.Core.Clients
 
             var rawContent = await response.Content.ReadAsStringAsync();
 
-            if (response.StatusCode == HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Created)
             {
                 try
                 {
-                    var authToken = JsonConvert.DeserializeObject<TokenResponse>(rawContent);
-                    return new AuthenticationResult()
+                    var paymentResponse = JsonConvert.DeserializeObject<PaymentResponse>(rawContent);
+
+                    if (string.Equals(paymentResponse.PaymentStatus, SuccessfulPaymentStatus, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        IsSuccessful = true,
-                        Token = authToken.Token
-                    };
+                        return new PaymentResult()
+                        {
+                            PaymentStatus = PaymentStatus.Success,
+                            Reference = cardPayment.Reference,
+                            ThirdPartyReference = paymentResponse.FoobarReference
+                        };
+                    }
+                    else if (string.Equals(paymentResponse.PaymentStatus, DeclinedPaymentStatus, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return new PaymentResult()
+                        {
+                            PaymentStatus = PaymentStatus.Declined,
+                            Reference = cardPayment.Reference,
+                            ThirdPartyReference = paymentResponse.FoobarReference
+                        };
+                    }
+                    else
+                    {
+                        _logger.LogError($"Unknown payment status response \"{paymentResponse.PaymentStatus}\"from {_paymentRequestAddress} for reference={cardPayment.Reference}");
+                        return new PaymentResult()
+                        {
+                            PaymentStatus = PaymentStatus.Error,
+                            Reference = cardPayment.Reference
+                        };
+                    }
                 }
                 catch
                 {
-                    _logger.LogError($"Error deserializing token response from {_paymentRequestAddress}");
-                    return new AuthenticationResult()
+                    _logger.LogError($"Error deserializing payment response from {_paymentRequestAddress} for reference={cardPayment.Reference}");
+                    return new PaymentResult()
                     {
-                        IsSuccessful = false,
-                        Token = string.Empty
+                        PaymentStatus = PaymentStatus.Error,
+                        Reference = cardPayment.Reference
                     };
                 }
             }
 
-            return new AuthenticationResult()
+            if (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.InternalServerError)
             {
-                IsSuccessful = false,
-                Token = string.Empty
+                _logger.LogError($"Error requesting payment from {_paymentRequestAddress} for reference={cardPayment.Reference}");
+
+                return new PaymentResult()
+                {
+                    PaymentStatus = PaymentStatus.Error,
+                    Reference = cardPayment.Reference
+                };
+            }
+            
+            _logger.LogError($"Unknown http response code from {_paymentRequestAddress} for reference={cardPayment.Reference}");
+
+            return new PaymentResult()
+            {
+                PaymentStatus = PaymentStatus.Error,
+                Reference = cardPayment.Reference
             };
         }
-
-
-        // pay
     }
 }

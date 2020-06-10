@@ -9,5 +9,6 @@ namespace Bank.Simulator.Models
         public string PaymentStatus { get; set; }
 
         public string Reference { get; set; }
+        public string FoobarReference { get; set; }
     }
 }

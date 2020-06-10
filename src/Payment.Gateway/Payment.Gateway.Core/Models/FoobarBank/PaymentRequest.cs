@@ -5,6 +5,7 @@
         public decimal Amount { get; set; }
         public string Currency { get; set; }
         public string Reference { get; set; }
+        public string FoobarReference { get; set; }
         public string NameOnCard { get; set; }
         public string CardNumber { get; set; }
         public string Cvv { get; set; }
