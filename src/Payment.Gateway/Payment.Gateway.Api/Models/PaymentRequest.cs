@@ -14,6 +14,8 @@ namespace Payment.Gateway.Api.Models
         public string Cvv { get; set; }
         public int ExpiryMonth { get; set; }
         public int ExpiryYear { get; set; }
+        public string CustomerAddress { get; set; }
+        public string CustomerName { get; set; }
 
     }
 

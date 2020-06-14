@@ -16,7 +16,7 @@ using System.Dynamic;
 namespace Payment.Gateway.Core.Clients
 {
 
-    public class FoobarBankClient
+    public class FoobarBankClient : IFoobarBankClient
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly FoobarBankOptions _foobarBankOptions;
@@ -67,9 +67,9 @@ namespace Payment.Gateway.Core.Clients
                         Token = authToken.Token
                     };
                 }
-                catch
+                catch (Exception ex)
                 {
-                    _logger.LogError($"Error deserializing token response from {_tokenRequestAddress}");
+                    _logger.LogError(ex, $"Exception deserializing token response from {_tokenRequestAddress}");
                     return new AuthenticationResult()
                     {
                         IsSuccessful = false,
@@ -77,6 +77,9 @@ namespace Payment.Gateway.Core.Clients
                     };
                 }
             }
+
+
+            _logger.LogError($"No successful login to foobar bank {_tokenRequestAddress}");
 
             return new AuthenticationResult()
             {
@@ -88,6 +91,18 @@ namespace Payment.Gateway.Core.Clients
 
         public async Task<PaymentResult> CreatePayment(CardPayment cardPayment)
         {
+
+            var authToken = await GetAuthenticationToken();
+            if (!authToken.IsSuccessful)
+            {
+                return new PaymentResult()
+                {
+                    PaymentStatus = PaymentStatus.Error,
+                    Reference = cardPayment.Reference
+                };
+            
+            }
+
             var json = JsonConvert.SerializeObject(new PaymentRequest()
             {
                 Amount = cardPayment.PaymentAmount.Amount,
@@ -97,7 +112,7 @@ namespace Payment.Gateway.Core.Clients
                 ExpiryMonth = cardPayment.CardDetails.ExpiryMonth,
                 ExpiryYear = cardPayment.CardDetails.ExpiryYear,
                 NameOnCard = cardPayment.CustomerDetails.CustomerName,
-                Reference = cardPayment.Reference                
+                Reference = cardPayment.Reference
             });
 
             using var request = new HttpRequestMessage(HttpMethod.Post, _paymentRequestAddress)
@@ -119,6 +134,7 @@ namespace Payment.Gateway.Core.Clients
 
                     if (string.Equals(paymentResponse.PaymentStatus, SuccessfulPaymentStatus, StringComparison.InvariantCultureIgnoreCase))
                     {
+                        _logger.LogInformation($"Successfully created payment for Reference={cardPayment.Reference} ThirdPartyReference={paymentResponse.FoobarReference}");
                         return new PaymentResult()
                         {
                             PaymentStatus = PaymentStatus.Success,
@@ -128,6 +144,7 @@ namespace Payment.Gateway.Core.Clients
                     }
                     else if (string.Equals(paymentResponse.PaymentStatus, DeclinedPaymentStatus, StringComparison.InvariantCultureIgnoreCase))
                     {
+                        _logger.LogInformation($"Payment declined for Reference={cardPayment.Reference} ThirdPartyReference={paymentResponse.FoobarReference}");
                         return new PaymentResult()
                         {
                             PaymentStatus = PaymentStatus.Declined,
@@ -166,7 +183,7 @@ namespace Payment.Gateway.Core.Clients
                     Reference = cardPayment.Reference
                 };
             }
-            
+
             _logger.LogError($"Unknown http response code from {_paymentRequestAddress} for reference={cardPayment.Reference}");
 
             return new PaymentResult()
