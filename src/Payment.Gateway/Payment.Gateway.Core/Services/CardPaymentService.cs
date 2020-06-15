@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Payment.Gateway.Core.Clients;
+using Payment.Gateway.Core.Helpers;
 using Payment.Gateway.Core.Models;
 using Payment.Gateway.Core.Repository;
 using System;
@@ -45,6 +46,19 @@ namespace Payment.Gateway.Core.Services
             {
                 await _paymentsRepository.UpdatePaymentResult(result);
             }
+        }
+
+        public async Task<CardPayment> GetCardPaymentByReference(string reference)
+        {
+            var cardPayment = await _paymentsRepository.GetCardPayment(reference);
+            
+            if (cardPayment == null)
+                return null;
+
+            cardPayment.CardDetails.CardNumber = StringHelper.HideCardNumber(cardPayment.CardDetails.CardNumber);
+            cardPayment.CardDetails.Cvv = "";
+
+            return cardPayment;
         }
     }
 }

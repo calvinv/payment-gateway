@@ -28,6 +28,26 @@ namespace Payment.Gateway.Controllers
             _authorizationService = authorizationService;
         }
 
+        [HttpGet("{reference}")]
+        public async Task<IActionResult> GetPayment([FromRoute]string reference)
+        {            
+            if (string.IsNullOrEmpty(Request.Headers["x-api-key"]) || (!_authorizationService.ValidateToken(Request.Headers["x-api-key"])))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _cardPaymentService.GetCardPaymentByReference(reference);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+
+
+
         [HttpPost]
         public async Task<IActionResult> CreatePayment(PaymentRequest cardPaymentRequest)
         {

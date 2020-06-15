@@ -7,5 +7,6 @@ namespace Payment.Gateway.Core.Repository
     {
         Task CreatePaymentRequest(CardPayment cardPayment);
         Task UpdatePaymentResult(PaymentResult paymentresult);
+        Task<CardPayment> GetCardPayment(string reference);
     }
 }

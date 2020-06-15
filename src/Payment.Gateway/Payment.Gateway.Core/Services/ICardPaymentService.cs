@@ -6,5 +6,6 @@ namespace Payment.Gateway.Core.Services
     public interface ICardPaymentService
     {
         Task<PaymentResult> CreateCardPayment(CardPayment cardPayment);
+        Task<CardPayment> GetCardPaymentByReference(string reference);
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Payment.Gateway.Core.Configuration;
 using Microsoft.Extensions.Options;
 using Payment.Gateway.Core.Models.Dto;
+using System.Net.Http.Headers;
 
 namespace Payment.Gateway.Core.Repository
 {
@@ -51,6 +52,9 @@ namespace Payment.Gateway.Core.Repository
         {
             using var connection = new SqlConnection(_connectionString);
             var cardPaymentDto = await connection.QuerySingleOrDefaultAsync<CardPaymentDto>(GetCardPaymentByReferenceProcedure, new { reference }, commandType: CommandType.StoredProcedure);
+
+            if (cardPaymentDto == null)
+                return null;
 
             return new CardPayment()
             {
