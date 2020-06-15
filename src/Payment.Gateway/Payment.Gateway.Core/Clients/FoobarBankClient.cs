@@ -12,6 +12,7 @@ using Payment.Gateway.Core.Models.FoobarBank;
 using System.Net;
 using Payment.Gateway.Core.Models;
 using System.Dynamic;
+using System.Net.Http.Headers;
 
 namespace Payment.Gateway.Core.Clients
 {
@@ -22,12 +23,12 @@ namespace Payment.Gateway.Core.Clients
         private readonly FoobarBankOptions _foobarBankOptions;
         private readonly string _tokenRequestAddress;
         private readonly string _paymentRequestAddress;
-        private readonly ILogger _logger;
+        private readonly ILogger<FoobarBankClient> _logger;
         private const string ApplicationJson = "application/json";
         private const string SuccessfulPaymentStatus = "success";
         private const string DeclinedPaymentStatus = "declined";
 
-        public FoobarBankClient(IHttpClientFactory httpClientFactory, ILogger logger, IOptions<FoobarBankOptions> options)
+        public FoobarBankClient(IHttpClientFactory httpClientFactory, ILogger<FoobarBankClient> logger, IOptions<FoobarBankOptions> options)
         {
             _httpClientFactory = httpClientFactory;
             _foobarBankOptions = options.Value;
@@ -119,6 +120,8 @@ namespace Payment.Gateway.Core.Clients
             {
                 Content = new StringContent(json, Encoding.UTF8, ApplicationJson)
             };
+            
+            request.Headers.Add("x-api-key", authToken.Token);
 
             var httpClient = _httpClientFactory.CreateClient();
 
@@ -179,7 +182,7 @@ namespace Payment.Gateway.Core.Clients
 
                 return new PaymentResult()
                 {
-                    PaymentStatus = PaymentStatus.Error,
+                    PaymentStatus = PaymentStatus.PartnerError,
                     Reference = cardPayment.Reference
                 };
             }
@@ -188,7 +191,7 @@ namespace Payment.Gateway.Core.Clients
 
             return new PaymentResult()
             {
-                PaymentStatus = PaymentStatus.Error,
+                PaymentStatus = PaymentStatus.PartnerError,
                 Reference = cardPayment.Reference
             };
         }

@@ -34,11 +34,10 @@ namespace Bank.Simulator
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Bank Simulator", Version = "v1" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "Bearer auth header Example: \"Bearer 12345abcdef\"",
-                    Name = "Authorization",
+                    Description = "api key header Example: \"12345abcdef\"",
+                    Name = "x-api-key",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.ApiKey,
-                    Scheme = "Bearer"
                 });
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement{
@@ -53,9 +52,6 @@ namespace Bank.Simulator
                 }});
 
             });
-
-
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

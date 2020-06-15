@@ -4,6 +4,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Payment.Gateway.Api.Models;
@@ -18,17 +19,22 @@ namespace Payment.Gateway.Controllers
     {
         private readonly ICardPaymentService _cardPaymentService;
         private readonly ILogger<CardPaymentsController> _logger;
+        private readonly IAuthenticationService _authorizationService;
 
-        public CardPaymentsController(ICardPaymentService cardPaymentService, ILogger<CardPaymentsController> logger)
+        public CardPaymentsController(ICardPaymentService cardPaymentService, ILogger<CardPaymentsController> logger, IAuthenticationService authorizationService)
         {
             _cardPaymentService = cardPaymentService;
-            _logger = logger;            
+            _logger = logger;
+            _authorizationService = authorizationService;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreatePayment(PaymentRequest cardPaymentRequest)
         {
-            //if cardpayment not valid return 400
+            if (string.IsNullOrEmpty(Request.Headers["x-api-key"]) || (!_authorizationService.ValidateToken(Request.Headers["x-api-key"])))
+            {
+                return Unauthorized();
+            }          
 
             var cardPayment = new CardPayment()
             {
@@ -62,9 +68,9 @@ namespace Payment.Gateway.Controllers
                 case PaymentStatus.Pending:
                     return Accepted(paymentResult);
                 case PaymentStatus.PartnerError:
-                    return StatusCode((int)HttpStatusCode.BadGateway, paymentResult);
+                    return StatusCode(StatusCodes.Status502BadGateway, paymentResult);
                 default:
-                    return StatusCode((int)HttpStatusCode.InternalServerError, paymentResult);                    
+                    return StatusCode(StatusCodes.Status500InternalServerError, paymentResult);                    
             }
         }
     }

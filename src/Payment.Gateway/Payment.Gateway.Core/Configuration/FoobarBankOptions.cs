@@ -8,4 +8,9 @@
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
     }
+
+    public class DatabaseOptions
+    {
+        public string ConnectionString { get; set; }
+    }
 }

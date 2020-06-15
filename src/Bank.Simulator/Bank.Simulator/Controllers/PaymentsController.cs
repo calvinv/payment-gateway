@@ -24,15 +24,17 @@ namespace Bank.Simulator.Controllers
         [ProducesResponseType(typeof(ErrorResponse), 401)]
         public IActionResult CreatePayment([FromBody]PaymentRequest paymentRequest)
         {
-            if (string.IsNullOrEmpty(Request.Headers["Authorization"]))
+            if (string.IsNullOrEmpty(Request.Headers["x-api-key"]))
             {
                 return Unauthorized(new ErrorResponse() {Message = "Please add authorization to the request"});
             }            
 
+            //try timeout
             return Ok(new PaymentResponse()
             {
                 PaymentStatus = PaymentStatus.Success.ToString(),
-                Reference = Guid.NewGuid().ToString(),
+                Reference = paymentRequest.Reference,
+                FoobarReference = Guid.NewGuid().ToString(),
                 TimeStamp = DateTime.UtcNow
             });
         }
