@@ -1,0 +1,1 @@
+dotnet run --project src\Bank.Simulator\Bank.Simulator\Bank.Simulator.csproj

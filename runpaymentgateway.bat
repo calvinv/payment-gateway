@@ -1,0 +1,1 @@
+dotnet run --project src\Payment.Gateway\Payment.Gateway.Api\Payment.Gateway.Api.csproj
