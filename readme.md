@@ -1,6 +1,6 @@
 Prequisities:
-dotnet core 3.1
-MS Sql server
+- dotnet core 3.1
+- MS Sql server
 
 Installation:
 Run the CreateDatabase.sql script on a new database called "payments", this will build your db objects
@@ -29,11 +29,11 @@ Run:
 
 Assumptions:
 - The bank endpoint would have it's own authentication endpoint for logging in and fetching a token.
-- One bank supports all the card payments, there would need to be changes depending on how many banks we integrated with
-- If there are other types of payments (bank transfer), there would be new endpoints. we could have everything under a payment controller if that was the choice
+- One bank supports all the card payments, there would need to be changes depending on how many banks are integrated with
+- If there are other types of payments (bank transfer), there would be new endpoints. Everything could be under a payment controller if that was the choice
 
 Areas to improve:
 - it currently allows duplicate references, this needs to be a bad request on creation if it is a duplicate
-- secrets are implemented in a basic way, there should be a more robust way to get a token and then validate it.
+- secrets are implemented in a basic way, there should be a more robust way to get an auth token and then validate it.
 - There should be integration tests to run at build time, most of what this does is integrate to different sources and that needs testing. There is currently only a small suite of unit tests, that could be expanded.
 - logging is implemented but there is no source to log to at the moment, typically there would be logging to some external service or to file, it just needs to be configured in Program.cs
