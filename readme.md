@@ -1,3 +1,4 @@
+
 Prequisities:
 - dotnet core 3.1
 - MS Sql server
